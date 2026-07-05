@@ -74,9 +74,6 @@ cc_binary {
     ] + select(soong_config_variable("qtidisplay", "libdisplayconfig_qti_namespace"), {
         any @ flag_val: ["//" + flag_val + ":libdisplayconfig.qti"],
         default: [],
-    }) + select(soong_config_variable("qtidisplay", "headers_namespace"), {
-        any @ flag_val: ["//" + flag_val + ":vendor.qti.hardware.display.config-V12-ndk"],
-        default: [],
     }),
 
     static_libs: select(soong_config_variable("qtipower", "mode_ext_lib"), {
@@ -85,7 +82,9 @@ cc_binary {
     }) + select(soong_config_variable("qtipower", "set_interactive_ext_lib"), {
         any @ lib: [lib],
         default: [],
-    }),
+    }) + [
+        "//vendor/qcom/opensource/commonsys-intf/display:vendor.qti.hardware.display.config-V12-ndk",
+    ],
 }
 
 cc_fuzz {
