@@ -1,0 +1,50 @@
+name: LineageOS
+
+on:
+  schedule:
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  BRANCH: ${{ github.event.repository.default_branch }}
+  UPSTREAM: ${{ github.workflow }}
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6.0.1
+        with:
+          ref: ${{ env.BRANCH }}
+          fetch-depth: 0
+
+      - name: Git
+        env:
+          GIT_CONFIG: ${{ secrets.GIT_CONFIG }}
+          GIT_CREDENTIALS: ${{ secrets.GIT_CREDENTIALS }}
+        run: |
+          if [ -f "$HOME/.gitconfig" ]; then
+            rm -f "$HOME/.gitconfig"
+            echo "$GIT_CONFIG" | base64 -d > "$HOME/.gitconfig"
+          else
+            echo "$GIT_CONFIG" | base64 -d > "$HOME/.gitconfig"
+          fi
+
+          if [ -f "$HOME/.git-credentials" ]; then
+            rm -f "$HOME/.git-credentials"
+            echo "$GIT_CREDENTIALS" | base64 -d > "$HOME/.git-credentials"
+          else
+            echo "$GIT_CREDENTIALS" | base64 -d > "$HOME/.git-credentials"
+          fi
+
+      - name: Fetch
+        run: git fetch https://github.com/${{ env.UPSTREAM }}/$(basename ${{ github.repository }}).git ${{ env.BRANCH }}
+
+      - name: Merge
+        run: git merge FETCH_HEAD --no-edit
+
+      - name: Push
+        run: git push
